@@ -35,7 +35,7 @@
         }
 
         html, body {
-            overflow-x: hidden; /* 關鍵修正：防止水平捲動 */
+            overflow-x: hidden; /* 防止水平捲動 */
             width: 100%;
         }
 
@@ -48,7 +48,7 @@
             padding-bottom: calc(100px + var(--safe-bottom)); 
         }
 
-        /* --- 2. 儀式感首頁 (Hero Section - 修改圖片) --- */
+        /* --- 2. 儀式感首頁 (Hero Section) --- */
         .hero-header {
             position: relative;
             height: 380px;
@@ -310,8 +310,7 @@
         }
 
 
-        /* --- 5. 每日行程 (Timeline) --- */
-        /* 日期選擇器 - 膠囊狀 */
+        /* --- 5. 每日行程 (Timeline) - 修正陰影遮擋問題 --- */
         .date-scroller-wrapper {
             position: sticky;
             top: 0;
@@ -319,16 +318,17 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             z-index: 10;
-            padding: 10px 0 15px 0;
             margin-left: -20px;
             margin-right: -20px;
-            box-shadow: 0 1px 0 rgba(90,74,66,0.05); /* 調整陰影 */
+            box-shadow: 0 1px 0 rgba(90,74,66,0.05);
+            /* 移除 padding，改在 scroller 內部設定，確保陰影空間 */
         }
 
         .date-scroller {
             display: flex;
             overflow-x: auto;
-            padding: 5px 20px;
+            /* 關鍵修正：增加底部 padding (25px) 讓陰影有空間顯示 */
+            padding: 15px 20px 25px 20px; 
             gap: 10px;
             scrollbar-width: none;
         }
@@ -342,15 +342,19 @@
             color: var(--text-secondary);
             font-weight: 500;
             white-space: nowrap;
-            box-shadow: 0 2px 8px rgba(90,74,66,0.03); /* 調整陰影 */
+            box-shadow: 0 2px 8px rgba(90,74,66,0.03); 
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             border: 1px solid transparent;
+            /* 確保變換中心正確 */
+            transform-origin: center;
         }
         .date-chip.active {
             background: var(--accent-color); /* 使用強調色 */
             color: white;
             transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(217, 154, 108, 0.3); /* 調整陰影顏色 */
+            /* 陰影不會再被裁切 */
+            box-shadow: 0 6px 16px rgba(217, 154, 108, 0.4); 
+            z-index: 1; /* 確保浮在其他上面 */
         }
         
         /* 體力消耗顯示 */
@@ -363,7 +367,8 @@
 
         /* 時間軸樣式 */
         .timeline-container {
-            padding-top: 20px;
+            /* 減少 padding top，因為 scroller 底部 padding 變大了 */
+            padding-top: 10px; 
         }
         .timeline-item {
             position: relative;
