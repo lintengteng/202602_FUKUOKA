@@ -409,6 +409,14 @@
             justify-content: space-between;
             align-items: flex-start;
         }
+        .event-header-content {
+            flex: 1;
+        }
+        .event-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
         
         .event-title {
             font-size: 16px;
@@ -424,7 +432,32 @@
             margin: 0;
         }
         
-        .map-btn {
+        /* 展開細節樣式 */
+        .event-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .event-details.open {
+            max-height: 500px; /* 足夠大的高度以容納內容 */
+            opacity: 1;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #E5E5EA;
+        }
+        .detail-list {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 13px;
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        .detail-list li {
+            margin-bottom: 4px;
+        }
+
+        .action-btn {
             background: #F2F2F7;
             border: none;
             width: 36px;
@@ -434,12 +467,21 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
             flex-shrink: 0;
-            margin-left: 10px;
+            color: var(--text-secondary);
         }
-        .map-btn:active { background: #E5E5EA; }
-        .map-btn svg { width: 20px; height: 20px; fill: var(--accent-color); }
+        .action-btn:active { background: #E5E5EA; }
+        .action-btn svg { width: 20px; height: 20px; fill: currentColor; }
+        
+        .expand-btn {
+            transform: rotate(0deg);
+        }
+        .expand-btn.open {
+            transform: rotate(180deg);
+            background: var(--accent-color);
+            color: white;
+        }
         
         .note-alert {
             margin-top: 10px;
@@ -833,7 +875,7 @@
                 </div>
 
                 <a href="https://www.taishinbank.com.tw/TSB/personal/deposit/lookup/history/JPY/" target="_blank" class="external-link">
-                    查詢台新匯率
+                    查詢台新銀行即時匯率 ↗
                 </a>
             </div>
         </div>
@@ -869,7 +911,6 @@
                 <h3>航班資訊</h3>
                 <button class="close-modal-btn" onclick="closeModal(event)">✕</button>
             </div>
-            <!-- 航班內容省略 (保持不變) -->
              <!-- 去程 -->
              <div class="flight-leg outbound">
                 <div class="leg-header">
@@ -1050,24 +1091,63 @@
         }
 
         function closeModal(event) {
-            // 如果點擊的是遮罩背景 或 關閉按鈕，則關閉
-            // event.target === event.currentTarget 確保只在點擊遮罩層本身時關閉，而不是點擊內容時
             if (event.target === event.currentTarget || event.target.closest('.close-modal-btn')) {
                 document.getElementById('flight-modal').classList.remove('show');
             }
         }
 
-        // --- 1. 行程資料 (已補完邏輯並加入體力消耗) ---
+        // --- 1. 行程資料 (已更新資料結構包含 details) ---
         const tripData = {
             "2026-02-21": {
                 label: "2/21 (六)",
                 title: "熊本抵達",
-                stamina: 3, // 預估體力消耗 (1-5)
+                stamina: 3, 
                 events: [
-                    { time: "10:35", title: "抵達熊本", desc: "前往飯店寄放行李，稍微休息", location: "熊本 REF 飯店" },
-                    { time: "13:00", title: "熊本城巡禮", desc: "城彩苑、熊本城稻荷神社、二之丸公園", location: "熊本城" },
-                    { time: "15:30", title: "水前寺成趣園", desc: "觀賞魯夫雕像，日式庭園散步", location: "水前寺成趣園" },
-                    { time: "18:00", title: "上下通商店街", desc: "晚餐與逛街採購", location: "下通商店街" }
+                    { 
+                        time: "10:35", 
+                        title: "抵達熊本", 
+                        desc: "前往飯店寄放行李，稍微休息", 
+                        location: "熊本 REF 飯店",
+                        details: [
+                            "領取 JR Pass (如果尚未領取)",
+                            "確認飯店 Check-in 時間：15:00 後",
+                            "飯店大浴場開放時間：15:00 - 24:00"
+                        ]
+                    },
+                    { 
+                        time: "13:00", 
+                        title: "熊本城巡禮", 
+                        desc: "城彩苑、熊本城稻荷神社、二之丸公園", 
+                        location: "熊本城",
+                        details: [
+                            "必吃：櫻花馬場城彩苑的海膽可樂餅",
+                            "必吃：菅乃屋馬肉刺身 (可預約午餐)",
+                            "天守閣頂樓風景絕佳，可眺望市區",
+                            "如果太累可以搭乘周遊巴士"
+                        ]
+                    },
+                    { 
+                        time: "15:30", 
+                        title: "水前寺成趣園", 
+                        desc: "觀賞魯夫雕像，日式庭園散步", 
+                        location: "水前寺成趣園",
+                        details: [
+                            "魯夫雕像在縣廳前，距離成趣園步行約 15 分鐘",
+                            "成趣園內有「長壽之水」可以喝",
+                            "古今傳授之間可以喝抹茶配和菓子"
+                        ]
+                    },
+                    { 
+                        time: "18:00", 
+                        title: "上下通商店街", 
+                        desc: "晚餐與逛街採購", 
+                        location: "下通商店街",
+                        details: [
+                            "必吃：勝烈亭豬排 (米其林推薦)",
+                            "藥妝店：大國藥妝價格通常較優惠",
+                            "鶴屋百貨有熊本熊部長辦公室"
+                        ]
+                    }
                 ]
             },
             "2026-02-22": {
@@ -1075,10 +1155,48 @@
                 title: "阿蘇一日遊",
                 stamina: 4,
                 events: [
-                    { time: "09:00", title: "前往阿蘇", desc: "參加預定行程或租車", location: "阿蘇駅" },
-                    { time: "10:30", title: "草千里之濱", desc: "觀賞火山壯麗景色", location: "草千里" },
-                    { time: "12:30", title: "阿蘇神社", desc: "參拜與周邊午餐", location: "阿蘇神社" },
-                    { time: "16:00", title: "返回熊本", desc: "市區晚餐", location: "熊本駅" }
+                    { 
+                        time: "09:00", 
+                        title: "前往阿蘇", 
+                        desc: "參加預定行程或租車", 
+                        location: "阿蘇駅",
+                        details: [
+                            "如果搭 JR，記得搭乘「阿蘇男孩號」 (需劃位)",
+                            "暈車藥記得吃，山路蜿蜒"
+                        ]
+                    },
+                    { 
+                        time: "10:30", 
+                        title: "草千里之濱", 
+                        desc: "觀賞火山壯麗景色", 
+                        location: "草千里",
+                        details: [
+                            "必吃：草千里咖啡焙煎所 (Coffee Roastery)",
+                            "可以體驗騎馬",
+                            "山上風大，記得帶防風外套"
+                        ]
+                    },
+                    { 
+                        time: "12:30", 
+                        title: "阿蘇神社", 
+                        desc: "參拜與周邊午餐", 
+                        location: "阿蘇神社",
+                        details: [
+                            "必吃：赤牛丼 (Imakin 食堂，需排隊)",
+                            "門前町商店街有「水基巡禮」可以喝泉水",
+                            "阿蘇牛奶冰淇淋"
+                        ]
+                    },
+                    { 
+                        time: "16:00", 
+                        title: "返回熊本", 
+                        desc: "市區晚餐", 
+                        location: "熊本駅",
+                        details: [
+                            "晚餐推薦：熊本拉麵 (桂花或黑亭)",
+                            "早點休息，明天要搭長途車"
+                        ]
+                    }
                 ]
             },
             "2026-02-23": {
@@ -1086,9 +1204,38 @@
                 title: "移動日：橫斷列車",
                 stamina: 2,
                 events: [
-                    { time: "11:49", title: "搭乘九州橫斷特急 3", desc: "熊本發車，記得先用 JR Pass 預約最後一排座位放行李", location: "熊本駅" },
-                    { time: "15:08", title: "抵達大分", desc: "前往飯店 Check-in", location: "大分駅" },
-                    { time: "16:30", title: "大分車站周邊", desc: "AMU PLAZA 逛街、晚餐", location: "JR大分城" }
+                    { 
+                        time: "11:49", 
+                        title: "搭乘九州橫斷特急 3", 
+                        desc: "熊本發車，記得先用 JR Pass 預約最後一排座位放行李", 
+                        location: "熊本駅",
+                        details: [
+                            "車程約 3 小時，建議買便當上車吃",
+                            "熊本車站肥後好市場有很多便當選擇",
+                            "注意：橫斷特急只有兩節車廂"
+                        ]
+                    },
+                    { 
+                        time: "15:08", 
+                        title: "抵達大分", 
+                        desc: "前往飯店 Check-in", 
+                        location: "大分駅",
+                        details: [
+                            "飯店就在車站樓上，非常方便",
+                            "大分車站屋頂有「城市屋頂廣場」可以看風景"
+                        ]
+                    },
+                    { 
+                        time: "16:30", 
+                        title: "大分車站周邊", 
+                        desc: "AMU PLAZA 逛街、晚餐", 
+                        location: "JR大分城",
+                        details: [
+                            "必吃：豐後牛料理",
+                            "必吃：大分名物「雞肉天婦羅 (Toriten)」",
+                            "頂樓有露天溫泉 (City Spa Tenku)"
+                        ]
+                    }
                 ]
             },
             "2026-02-24": {
@@ -1096,10 +1243,49 @@
                 title: "由布院散策",
                 stamina: 3,
                 events: [
-                    { time: "13:25", title: "前往由布院", desc: "JR 移動，約 1 小時車程", location: "由布院駅" },
-                    { time: "14:15", title: "湯之坪街道", desc: "逛街、金鱗湖拍照", location: "金鱗湖" },
-                    { time: "15:56", title: "由布院之森 (備案17:17)", desc: "前往博多。行李可先運送至福岡，或預約火車行李位", location: "由布院駅" },
-                    { time: "18:10", title: "抵達博多", desc: "入住中洲飯店", location: "博多駅" }
+                    { 
+                        time: "13:25", 
+                        title: "前往由布院", 
+                        desc: "JR 移動，約 1 小時車程", 
+                        location: "由布院駅",
+                        details: [
+                            "出站就可以看到由布岳",
+                            "車站旁有觀光案內所可以寄放行李 (如果太早到)"
+                        ]
+                    },
+                    { 
+                        time: "14:15", 
+                        title: "湯之坪街道", 
+                        desc: "逛街、金鱗湖拍照", 
+                        location: "金鱗湖",
+                        details: [
+                            "必吃：B-speak 蛋糕捲 (建議一早去買或預約)",
+                            "必吃：金賞可樂餅",
+                            "必吃：Milch 起司蛋糕",
+                            "Snoopy 茶屋也是熱門打卡點"
+                        ]
+                    },
+                    { 
+                        time: "15:56", 
+                        title: "由布院之森 (備案17:17)", 
+                        desc: "前往博多。行李可先運送至福岡，或預約火車行李位", 
+                        location: "由布院駅",
+                        details: [
+                            "必買：車上限定便當與豆乳冰淇淋",
+                            "如果沒劃到由布院之森，改搭由布號",
+                            "車上可蓋紀念章"
+                        ]
+                    },
+                    { 
+                        time: "18:10", 
+                        title: "抵達博多", 
+                        desc: "入住中洲飯店", 
+                        location: "博多駅",
+                        details: [
+                            "晚餐推薦：博多牛腸鍋 (Ooyama)",
+                            "博多車站可買努努雞當宵夜"
+                        ]
+                    }
                 ]
             },
             "2026-02-25": {
@@ -1107,10 +1293,50 @@
                 title: "太宰府與天神",
                 stamina: 4,
                 events: [
-                    { time: "09:30", title: "太宰府天滿宮", desc: "參拜、表參道吃梅枝餅", location: "太宰府天滿宮" },
-                    { time: "11:30", title: "寶滿宮竈門神社", desc: "結緣神社 (鬼滅之刃聖地)", location: "宝満宮竈門神社" },
-                    { time: "14:30", title: "天神地下街", desc: "購物與下午茶", location: "天神地下街" },
-                    { time: "18:00", title: "中洲屋台", desc: "體驗博多夜生活", location: "中洲屋台" }
+                    { 
+                        time: "09:30", 
+                        title: "太宰府天滿宮", 
+                        desc: "參拜、表參道吃梅枝餅", 
+                        location: "太宰府天滿宮",
+                        details: [
+                            "必吃：梅枝餅 (推薦木村家或傘之家)",
+                            "必看：星巴克表參道店 (隈研吾設計)",
+                            "摸御神牛的頭可以長智慧"
+                        ]
+                    },
+                    { 
+                        time: "11:30", 
+                        title: "寶滿宮竈門神社", 
+                        desc: "結緣神社 (鬼滅之刃聖地)", 
+                        location: "宝満宮竈門神社",
+                        details: [
+                            "需搭乘公車前往",
+                            "御守設計非常現代精美，很適合當伴手禮",
+                            "秋天有楓葉，春天有櫻花"
+                        ]
+                    },
+                    { 
+                        time: "14:30", 
+                        title: "天神地下街", 
+                        desc: "購物與下午茶", 
+                        location: "天神地下街",
+                        details: [
+                            "必吃：BAKE 起司塔",
+                            "必吃：RINGO 蘋果派",
+                            "各大百貨公司林立 (Parco, 岩田屋)"
+                        ]
+                    },
+                    { 
+                        time: "18:00", 
+                        title: "中洲屋台", 
+                        desc: "體驗博多夜生活", 
+                        location: "中洲屋台",
+                        details: [
+                            "必吃：博多豚骨拉麵",
+                            "必吃：明太子玉子燒",
+                            "屋台通常沒有標價，點餐前可先問價錢"
+                        ]
+                    }
                 ]
             },
             "2026-02-26": {
@@ -1118,10 +1344,48 @@
                 title: "門司港懷舊",
                 stamina: 3,
                 events: [
-                    { time: "10:00", title: "前往門司港", desc: "博多 -> 門司港", location: "門司港駅" },
-                    { time: "11:00", title: "門司港懷舊區", desc: "吃燒咖哩、看藍翼橋開橋", location: "門司港懷舊展望室" },
-                    { time: "14:00", title: "小倉城", desc: "順遊旦過市場", location: "小倉城" },
-                    { time: "17:30", title: "皿倉山夜景", desc: "新日本三大夜景 (視天氣決定)", location: "皿倉山" }
+                    { 
+                        time: "10:00", 
+                        title: "前往門司港", 
+                        desc: "博多 -> 門司港", 
+                        location: "門司港駅",
+                        details: [
+                            "車站本身就是古蹟，很好拍",
+                            "站員制服也是復古風"
+                        ]
+                    },
+                    { 
+                        time: "11:00", 
+                        title: "門司港懷舊區", 
+                        desc: "吃燒咖哩、看藍翼橋開橋", 
+                        location: "門司港懷舊展望室",
+                        details: [
+                            "必吃：燒咖哩 (推薦伽哩本舖)",
+                            "藍翼橋開橋時間：10:00, 11:00, 13:00... (整點)",
+                            "香蕉人雕像拍照"
+                        ]
+                    },
+                    { 
+                        time: "14:00", 
+                        title: "小倉城", 
+                        desc: "順遊旦過市場", 
+                        location: "小倉城",
+                        details: [
+                            "旦過市場被稱為「北九州的廚房」",
+                            "必吃：大學堂丼飯 (買白飯去各攤位夾菜)"
+                        ]
+                    },
+                    { 
+                        time: "17:30", 
+                        title: "皿倉山夜景", 
+                        desc: "新日本三大夜景 (視天氣決定)", 
+                        location: "皿倉山",
+                        details: [
+                            "需搭乘接駁車+纜車",
+                            "山上非常冷，一定要穿暖",
+                            "號稱價值 100 億美元的夜景"
+                        ]
+                    }
                 ]
             },
             "2026-02-27": {
@@ -1129,11 +1393,55 @@
                 title: "福岡市區 & 返台",
                 stamina: 2,
                 events: [
-                    { time: "09:30", title: "櫛田神社", desc: "博多總鎮守", location: "櫛田神社" },
-                    { time: "11:00", title: "博多運河城", desc: "最後購物與水舞秀", location: "博多運河城" },
-                    { time: "14:00", title: "住吉神社/福岡城跡", desc: "市區悠閒散步", location: "住吉神社" },
-                    { time: "16:00", title: "前往福岡機場", desc: "搭乘地鐵或巴士", location: "福岡空港" },
-                    { time: "18:30", title: "起飛返台", desc: "Goodbye Kyushu!", location: "" }
+                    { 
+                        time: "09:30", 
+                        title: "櫛田神社", 
+                        desc: "博多總鎮守", 
+                        location: "櫛田神社",
+                        details: [
+                            "觀賞巨大的博多祇園山笠",
+                            "靈泉鶴之井戶"
+                        ]
+                    },
+                    { 
+                        time: "11:00", 
+                        title: "博多運河城", 
+                        desc: "最後購物與水舞秀", 
+                        location: "博多運河城",
+                        details: [
+                            "每半小時有一次水舞秀",
+                            "拉麵競技場可以吃午餐",
+                            "松本清、Uniqlo 補貨"
+                        ]
+                    },
+                    { 
+                        time: "14:00", 
+                        title: "住吉神社/福岡城跡", 
+                        desc: "市區悠閒散步", 
+                        location: "住吉神社",
+                        details: [
+                            "住吉神社是全日本住吉神社的起源",
+                            "相撲力士像"
+                        ]
+                    },
+                    { 
+                        time: "16:00", 
+                        title: "前往福岡機場", 
+                        desc: "搭乘地鐵或巴士", 
+                        location: "福岡空港",
+                        details: [
+                            "國內線航廈有著名的「The FoodTimes」美食街",
+                            "搭接駁車去國際線航廈",
+                            "最後伴手禮：福岡草莓、博多通饅頭"
+                        ]
+                    },
+                    { 
+                        time: "18:30", 
+                        title: "起飛返台", 
+                        desc: "Goodbye Kyushu!", 
+                        location: "",
+                        details: []
+                    }
                 ]
             }
         };
@@ -1185,6 +1493,19 @@
             renderTimeline(date);
         }
 
+        function toggleDetails(id) {
+            const detailsEl = document.getElementById(`details-${id}`);
+            const btnEl = document.getElementById(`btn-${id}`);
+            
+            if (detailsEl.classList.contains('open')) {
+                detailsEl.classList.remove('open');
+                btnEl.classList.remove('open');
+            } else {
+                detailsEl.classList.add('open');
+                btnEl.classList.add('open');
+            }
+        }
+
         function renderTimeline(date) {
             const container = document.getElementById('daily-timeline');
             const dayData = tripData[date];
@@ -1214,25 +1535,49 @@
                    </div>`;
                 }
 
-                dayData.events.forEach(ev => {
+                dayData.events.forEach((ev, index) => {
+                    const uniqueId = index; // 使用索引作為簡單ID
+                    
                     // Google Maps Link
                     const mapUrl = ev.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}` : '';
+                    
                     const mapBtn = mapUrl ? `
-                        <button class="map-btn" onclick="window.open('${mapUrl}', '_blank')">
-                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5-2.5 2.5z"/></svg>
+                        <button class="action-btn" onclick="window.open('${mapUrl}', '_blank')">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                         </button>` : '';
+
+                    // 下拉內容
+                    let detailsHtml = '';
+                    if (ev.details && ev.details.length > 0) {
+                        detailsHtml = `<ul class="detail-list">`;
+                        ev.details.forEach(d => {
+                            detailsHtml += `<li>${d}</li>`;
+                        });
+                        detailsHtml += `</ul>`;
+                    } else {
+                         detailsHtml = `<p style="font-size:13px; color:#999; margin:0; padding-left:20px;">點擊以新增筆記...</p>`;
+                    }
 
                     html += `
                     <div class="timeline-item">
                         <div class="timeline-dot"></div>
                         <div class="event-card">
                             <div class="event-header">
-                                <div>
+                                <div class="event-header-content" onclick="toggleDetails(${uniqueId})" style="cursor:pointer">
                                     <span class="time-badge">${ev.time}</span>
                                     <h3 class="event-title">${ev.title}</h3>
                                     <p class="event-desc">${ev.desc}</p>
                                 </div>
-                                ${mapBtn}
+                                <div class="event-actions">
+                                    ${mapBtn}
+                                    <button id="btn-${uniqueId}" class="action-btn expand-btn" onclick="toggleDetails(${uniqueId})">
+                                        <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="details-${uniqueId}" class="event-details">
+                                ${detailsHtml}
                             </div>
                         </div>
                     </div>`;
